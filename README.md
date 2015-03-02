@@ -8,7 +8,7 @@ Helion Development Platform Application Lifecycle Services Cluster.
 
 ## Deploy to HP Helion
 You can deploy this app automatically with the button below or with the manual 
-instructions further down. In either case, you will need to have take care of the
+instructions further down. In either case, you will need to take care of the
 prerequisites.
 
 <a href="https://deploynow.hpcloud.com/?repoUrl=https://github.com/HelionDevPlatform/helion-mysql-java">
