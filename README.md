@@ -6,15 +6,6 @@ New users should check out the resources available at [HP Helion Docs](http://do
 The site includes more detail and has instructions on how to create an HP
 Helion Development Platform Application Lifecycle Services Cluster.
 
-## Deploy to HP Helion
-You can deploy this app automatically with the button below or with the manual 
-instructions further down. In either case, you will need to take care of the
-prerequisites.
-
-<a href="https://deploynow.hpcloud.com/?repoUrl=https://github.com/HelionDevPlatform/helion-mysql-java">
-![Helion  Logo](https://a248.e.akamai.net/cdn.hpcloudsvc.com/g0bc199ab57e65f093a48d069effc0c3b/prodae1//button.png?id=6)
-</a>
-
 ## Prerequisites
 - If you do not have an HP Helion Development Platform Application Lifecycle 
   Services Cluster available, please create one before continuing. You will also
