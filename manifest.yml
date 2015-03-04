@@ -1,8 +1,8 @@
 ---
-applications: 
+applications:
 - name: helion-mysql-java
   mem: 512M
-  path: target/mysql-java-1.0
+  path: build/mysql-java-1.0
   services:
     ${name}-db:
       type: mysql
