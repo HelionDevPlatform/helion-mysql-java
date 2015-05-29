@@ -7,7 +7,7 @@
 
 	<servlet>
 		<servlet-name>MysqlServlet</servlet-name>
-		<servlet-class>main.java.org.hp.samples.MysqlServlet</servlet-class>
+		<servlet-class>org.hp.samples.MysqlServlet</servlet-class>
 	</servlet>
 
 	<servlet-mapping>
