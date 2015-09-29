@@ -23,6 +23,7 @@ package org.hp.samples;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URI;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -36,6 +37,7 @@ import argo.jdom.JsonRootNode;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.DriverManager;
 
@@ -43,6 +45,7 @@ public class MysqlServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
+    
     protected void doGet(HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/plain");
@@ -50,9 +53,47 @@ public class MysqlServlet extends HttpServlet {
         PrintWriter writer = response.getWriter();
         writer.println("MySQL with Java \n");
 
-        String vcap_services = System.getenv("VCAP_SERVICES");
-
+        
+        
         Connection dbConnection = null;
+        
+        writer.println("Connecting to MySQL using MYSQL environment variable...");
+        String mysql_url = System.getenv("MYSQL_URL");
+        
+        
+        if (mysql_url != null && mysql_url.length() > 0) {
+        	try {
+        		URI dbUri = new URI(System.getenv("MYSQL_URL"));
+
+        	    String user = dbUri.getUserInfo().split(":")[0];
+        	    String password = dbUri.getUserInfo().split(":")[1];
+        	    int port = dbUri.getPort();
+        	    if( port == -1) {
+        	    	port = 3306;
+        	    }
+        	    
+        	    String dbUrl = "jdbc:mysql://" + dbUri.getHost() + ':' + port + dbUri.getPath();
+        	    
+        	    // Connect to MySQL
+				
+				
+				Class.forName("com.mysql.jdbc.Driver");
+				dbConnection = DriverManager.getConnection(dbUrl, user, password);
+				executeDbCheck(writer, dbConnection);
+				dbConnection.close();
+        	}
+        	catch (Exception e) {
+	            System.out.println("Caught error: ");
+	            e.printStackTrace();
+        	}
+        	
+        } else {
+        	writer.println("Unable to connect using MYSQL_URL environment variable. Please ensure that it has been set.");
+        }
+
+        
+        writer.println("Connecting to MySQL using mysql settings in VCAP_SERVICES environment variable...");
+        String vcap_services = System.getenv("VCAP_SERVICES");
 
         if (vcap_services != null && vcap_services.length() > 0) {
             try {
@@ -74,53 +115,60 @@ public class MysqlServlet extends HttpServlet {
 
                 String dbUrl = "jdbc:mysql://" + hostname + ":" + port + "/" + dbname;
 
-                // Connect to MySQL
-                writer.println("Connecting to MySQL...");
+                
 
                 Class.forName("com.mysql.jdbc.Driver");
                 dbConnection = DriverManager.getConnection(dbUrl, user, password);
+                
+                executeDbCheck(writer, dbConnection);
+                dbConnection.close();
             } catch (Exception e) {
                 System.out.println("Caught error: ");
                 e.printStackTrace();
             }
-        }
-
-        try {
-            if (dbConnection != null && !dbConnection.isClosed()) {
-                writer.println("Connected to MySQL!");
-
-                // creating a database table and populating some values
-                Statement statement = dbConnection.createStatement();
-
-                ResultSet rs = statement.executeQuery("SELECT \"Hello World!\"");
-                writer.println("Executed query \"SELECT \"Hello World!\"\".");
-
-                ResultSetMetaData rsmd = rs.getMetaData();
-                int columnsNumber = rsmd.getColumnCount();
-
-                while (rs.next()) {
-                    for (int i = 1; i <= columnsNumber; i++) {
-                        if (i > 1) System.out.print(",  ");
-                        String columnValue = rs.getString(i);
-
-                        // Since we are selecting a string literal, the column
-                        // value and column name are both the same. The values
-                        // could be retrieved with the line commented out below.
-                        //writer.println("Column value: " + columnValue + " column name " + rsmd.getColumnName(i));
-
-                        writer.println("Result: " + columnValue);
-                    }
-                }
-
-                statement.close();
-            } else {
-                writer.println("Failed to connect to MySQL");
-            }
-        }
-        catch (Exception e) {
-            writer.println("Exception caught while executing DB queries.");
+        } else {
+        	writer.println("Unable to connect to MySQL using VCAP_SERVICES environment variable. Please ensure that VCAP_SERVICES and mysql information is correctly configured as shown at http://docs.hpcloud.com/als/v1/user/services/data-services/#vcap-services-jumplink-span, it is required to connect to the MySQL database.");
         }
 
         writer.close();
     }
+    
+    /**
+     * simple database sanity check.
+     * @param writer
+     * @param dbConnection
+     * @throws SQLException 
+     */
+    public void executeDbCheck(PrintWriter writer, Connection dbConnection) throws SQLException { 
+	    if (dbConnection != null && !dbConnection.isClosed()) {
+            writer.println("Connected to MySQL!");
+
+            // creating a database table and populating some values
+            Statement statement = dbConnection.createStatement();
+
+            ResultSet rs = statement.executeQuery("SELECT \"Hello World!\"");
+            writer.println("Executed query \"SELECT \"Hello World!\"\".");
+
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnsNumber = rsmd.getColumnCount();
+
+            while (rs.next()) {
+                for (int i = 1; i <= columnsNumber; i++) {
+                    if (i > 1) System.out.print(",  ");
+                    String columnValue = rs.getString(i);
+
+                    // Since we are selecting a string literal, the column
+                    // value and column name are both the same. The values
+                    // could be retrieved with the line commented out below.
+                    //writer.println("Column value: " + columnValue + " column name " + rsmd.getColumnName(i));
+
+                    writer.println("Result: " + columnValue);
+                }
+            }
+
+            statement.close();
+        } else {
+            writer.println("Failed to connect to MySQL");
+        }
+   }
 }
